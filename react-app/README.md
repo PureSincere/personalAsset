@@ -1,0 +1,3 @@
+- 参考链接
+  - https://mobx.js.org/configuration.html
+  - https://zh.mobx.js.org/the-gist-of-mobx.html
