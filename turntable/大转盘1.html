@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <title>dremo</title>
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0,minimum-scale=1.0,user-scalable=no">
+</head>
+<body>
+
+<!--圆形导航-->
+<!--圆形导航1-->
+<!--
+    参考链接：
+        http://www.w3cplus.com/css3/building-a-circular-navigation-with-css-transforms.html
+        https://tympanus.net/Tutorials/CircularNavigation/
+    兼容性：IE10+
+
+    12x=360,x=30,90-x=60,-(90-x/2)=-75
+-->
+<style type="text/css">
+    html,body{margin:0;padding:0;width:100%;height:100%;font-size:32px;}
+    ul,li{margin:0;padding:0;list-style:none;}
+    a{text-decoration:none;}
+    body{display:flex;justify-content:center;align-items:center;}
+
+    .container{position:relative;width:10rem;height:10rem;border-radius:50%;overflow:hidden;transform:scale(1);}
+    .container>.wrapper{width: 100%;height: 100%;transition: transform 10s cubic-bezier(.68,0,0,1);}
+    ul li{position:absolute;top:50%;left:50%;width:5rem;height:5rem;margin:-5rem 0 0 -5rem;transform-origin:100% 100%;overflow:hidden;}
+    /*ul li:nth-child(1){transform:rotate(0deg) skew(60deg);}*/
+    /*ul li:nth-child(2){transform:rotate(30deg) skew(60deg);}*/
+    /*ul li:nth-child(3){transform:rotate(60deg) skew(60deg);}*/
+    /*ul li:nth-child(4){transform:rotate(90deg) skew(60deg);}*/
+    /*ul li:nth-child(5){transform:rotate(120deg) skew(60deg);}*/
+    /*ul li:nth-child(6){transform:rotate(150deg) skew(60deg);}*/
+    /*ul li:nth-child(7){transform:rotate(180deg) skew(60deg);}*/
+    /*ul li:nth-child(8){transform:rotate(210deg) skew(60deg);}*/
+    /*ul li:nth-child(9){transform:rotate(240deg) skew(60deg);}*/
+    /*ul li:nth-child(10){transform:rotate(270deg) skew(60deg);}*/
+    /*ul li:nth-child(11){transform:rotate(300deg) skew(60deg);}*/
+    /*ul li:nth-child(12){transform:rotate(330deg) skew(60deg);}*/
+    /*ul li a{display:block;width:10rem;height:10rem;transform:skew(-60deg) rotate(-75deg);text-align:center;color:#fff;}*/
+    ul li a{display:block;width:10rem;height:10rem;text-align:center;color:#fff;}
+    ul li:nth-child(odd) a{background:hsla(0,0%,40%,1);}
+    ul li:nth-child(even) a{background:hsla(0,0%,60%,1);}
+
+
+    /*.container{animation:round 2s linear infinite;}*/
+    /*.container:hover{animation-play-state:paused;}*/
+    /*@keyframes round{*/
+        /*from{transform:rotate(0turn);}*/
+        /*to{transform:rotate(1turn);}*/
+    /*}*/
+
+
+
+    ul li a .wrapper{width: 20%;padding: 1em;margin: 0 auto;font-size: .3rem;}
+    ul li a .wrapper h1{margin: 0 auto;font-size: .3rem;}
+    ul li a .wrapper p{margin: 0 auto;font-size: .3rem;}
+
+    .container .lottery-draw{outline: none;cursor: pointer;width: 6em;height: 6em;position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);background: #58a;color: #fff;border: none;border-radius: 50%;}
+    .pointer{position: absolute;top: calc(50% - 5rem);left: 50%;transform: translate(-50%, -50%);}
+
+</style>
+<div id="vm">
+    <div class="container" :style="{transform: 'rotate(' + wheel.wheelContainerInitDegree + 'deg) scale(1)'}">
+        <ul class="wrapper" :style="{transform: 'rotate(' + wheel.wheelContainerDegree + 'deg)'}">
+            <li v-for="(data, $index) in wheel.data" :key="$index" :style="{transform: 'rotate(' + wheel.css.r1*$index + 'deg) skew(' + wheel.css.s1 + 'deg)'}">
+                <a href="javascript:;" :style="{transform: 'skew(' + -wheel.css.s1 + 'deg) rotate(' + wheel.css.r2 + 'deg)'}">
+                    <div class="wrapper">
+                        <h1 v-html="data.title"></h1>
+                        <p v-html="data.content"></p>
+                        <p v-html="$index + 1"></p>
+                    </div>
+                </a>
+            </li>
+        </ul>
+        <button class="lottery-draw" type="button" :style="{transform: 'translate(-50%, -50%) rotate(' + -wheel.wheelContainerInitDegree + 'deg)'}" @click="luckDraw">点击抽奖</button>
+    </div>
+    <div class="pointer">!</div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    /*
+        支持 4、6、8 格
+    */
+    let wheelData = [
+      {title: '谢谢惠顾！', content: '欢迎再来！'},
+      {title: '谢谢惠顾！', content: '欢迎再来！'},
+      {title: '谢谢惠顾！', content: '欢迎再来！'},
+      {title: '谢谢惠顾！', content: '欢迎再来！'},
+      {title: '谢谢惠顾！', content: '欢迎再来！'},
+      {title: '谢谢惠顾！', content: '欢迎再来！'},
+      {title: '谢谢惠顾！', content: '欢迎再来！'},
+      {title: '谢谢惠顾！', content: '欢迎再来！'},
+    ]
+    let vm = new Vue({
+      data: {
+        wheel: {
+          wheelContainerDegree: 0,
+          wheelContainerInitDegree: 90 - 360 / wheelData.length /2,
+          wheelContainerInitRotateDegree: 90 - 360 / wheelData.length /2,
+          wheelContainerAverageDegree: 360 / wheelData.length,
+          css: {
+            r1: 360 / wheelData.length,
+            s1: 90 - 360 / wheelData.length,
+            r2: - (90 - 360 / wheelData.length / 2),
+          },
+          data: wheelData,
+          awardIndex: '',
+        }
+      },
+      methods: {
+        // 旋转
+        rotate(degree, initCircle){
+          this.wheel.wheelContainerDegree += degree + initCircle * 360
+          this.wheel.wheelContainerInitRotateDegree = (this.wheel.wheelContainerInitRotateDegree + degree) % 360
+        },
+        // 获取角度值区间（以90°值为下标获奖点）
+        getDegree(index){
+          let startDegree = 90 - (this.wheel.wheelContainerAverageDegree * (index + 1) + this.wheel.wheelContainerInitRotateDegree) % 360 >= 0 ?
+            90 - (this.wheel.wheelContainerAverageDegree * (index + 1) + this.wheel.wheelContainerInitRotateDegree) % 360 :
+            360 + 90 - (this.wheel.wheelContainerAverageDegree * (index + 1) + this.wheel.wheelContainerInitRotateDegree) % 360
+
+          let endDegree = 90 - ((this.wheel.wheelContainerAverageDegree * index + 1) + this.wheel.wheelContainerInitRotateDegree) % 360 >= 0 ?
+            90 - ((this.wheel.wheelContainerAverageDegree * index + 1) + this.wheel.wheelContainerInitRotateDegree) % 360 :
+            360 + 90 - ((this.wheel.wheelContainerAverageDegree * index + 1) + this.wheel.wheelContainerInitRotateDegree) % 360
+          if(startDegree > endDegree)
+          {
+            return {startDegree: [startDegree, 359], endDegree: [0, endDegree]}
+          }
+          else
+          {
+            return {startDegree: [startDegree], endDegree: [endDegree]}
+          }
+        },
+        // 获取角度值区间之间的随机数
+        getRandomDegree(index){
+          let degree = this.getDegree(index)
+          if(degree.startDegree.length === 1)
+          {
+            return degree.startDegree[0] + Math.random() * (degree.endDegree[0] - degree.startDegree[0])
+          }
+          else if(degree.startDegree.length === 2)
+          {
+            return Math.round(Math.random()) ?
+              degree.startDegree[0] + Math.random() * (degree.startDegree[1] - degree.startDegree[0]) :
+              degree.endDegree[0] + Math.random() * (degree.endDegree[1] - degree.endDegree[0])
+          }
+        },
+        // 抽奖
+        luckDraw(){
+          this.awardIndex = Math.round(Math.random() * (wheelData.length - 1))
+          this.rotate(this.getRandomDegree(this.awardIndex), 20)
+        },
+      },
+      mounted(){
+        let transitionendFn = () => {
+          let index = this.awardIndex
+          alert('恭喜你抽中奖品' + (index + 1) + '：' + wheelData[index].title + ',' + wheelData[index].content)
+        }
+        document.querySelector('.container>.wrapper').addEventListener('webkitTransitionEnd', transitionendFn)
+        document.querySelector('.container>.wrapper').addEventListener('transitionend', transitionendFn)
+
+//        console.log(this.getDegree(0))
+//        console.log(this.getDegree(1))
+//        console.log(this.getDegree(2))
+//        console.log(this.getDegree(3))
+//        console.log(this.getDegree(4))
+//        console.log(this.getDegree(5))
+//        console.log(this.getDegree(6))
+//        console.log(this.getDegree(7))
+//        console.log(this.getRandomDegree(7))
+//        setInterval(()=>{
+//          this.rotate(this.getRandomDegree(2), 2)
+//          console.log(this.getRandomDegree(2))
+//        }, 3000)
+      }
+    }).$mount('#vm')
+</script>
+
+
+
+
+</body>
+</html>
+
+
+
